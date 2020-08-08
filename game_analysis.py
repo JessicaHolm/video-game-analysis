@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-WANTED_PLATFORMS = ["NES", "SNES", "N64", "GC", "Wii", "WiiU", "NS", "PS", "PS2", "PS3", "PS4", "XB", "X360", "XOne"]
-PLATFORM_COLORS = ["blue", "green", "blue", "red", "blue", "blue", "green", "green", "red", "red", "red", "red", "red", "red"]
+WANTED_PLATFORMS = ["PC", "NES", "SNES", "N64", "GC", "Wii", "WiiU", "NS", "PS", "PS2", "PS3", "PS4", "XB", "X360", "XOne"]
+PLATFORM_COLORS = ["blue", "orange", "green", "blue", "red", "blue", "blue", "green", "green", "red", "red", "red", "red", "red", "red"]
 
 class Column(Enum):
     YEAR = "Year"
@@ -60,29 +60,37 @@ class Analysis(object):
         plt.show()
 
     def create_and_plot_ratings(self):
-        for col_name in ["Critic_Score", "User_Score"]:
+        for i, col_name in enumerate(["Critic_Score", "User_Score"]):
             col_dict = {}
             df = pd.DataFrame(self.games, columns=[col_name, "Year"])
             col = df["Year"].unique()
             for value in col:
-                sum = df.loc[df["Year"] == value, col_name].sum()
-                count = df.loc[df["Year"] == value, col_name].count()
-                average = sum / count
-                col_dict[value] = average
+                if value >= 2012:
+                    sum = df.loc[df["Year"] == value, col_name].sum()
+                    count = df.loc[df["Year"] == value, col_name].count()
+                    average = sum / count
+                    col_dict[value] = average
             self.rating_dicts.append(col_dict)
-            plt.plot(list(col_dict.keys()), list(col_dict.values()))
+            l = sorted(self.rating_dicts[i].items(), key=lambda e: e[0])
+            keys = []
+            values = []
+            for (k, v) in l:
+                keys.append(k)
+                values.append(v)
+            plt.plot(keys, values)
+            plt.ylim(6.0, 9.0)
             plt.xlabel("Year")
-            plt.ylabel(col_name)
+            plt.ylabel("Average " + col_name)
             plt.show()
 
 def main():
     games_file = sys.argv[1]
 
     a = Analysis(games_file)
-    #for i, column in enumerate(Column):
-        #print(column.value)
-        #a.create_dataframe(column.value)
-        #a.plot_dataframe(column.value, i)
+    for i, column in enumerate(Column):
+        print(column.value)
+        a.create_dataframe(column.value)
+        a.plot_dataframe(column.value, i)
     a.create_and_plot_ratings()
 
 
