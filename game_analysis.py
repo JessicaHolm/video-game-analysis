@@ -65,7 +65,7 @@ class Analysis(object):
             df = pd.DataFrame(self.games, columns=[col_name, "Year"])
             col = df["Year"].unique()
             for value in col:
-                if value >= 2012:
+                if 2012 <= value < 2020:
                     sum = df.loc[df["Year"] == value, col_name].sum()
                     count = df.loc[df["Year"] == value, col_name].count()
                     average = sum / count
@@ -83,15 +83,39 @@ class Analysis(object):
             plt.ylabel("Average " + col_name)
             plt.show()
 
+    def best_selling(self):
+        for col_name in ["Critic_Score", "User_Score"]:
+            col_dict = {}
+            best_selling = {}
+            df = pd.DataFrame(self.games, columns=["Name", "Year", "Total_Shipped", "Critic_Score", "User_Score"])
+            col = df["Year"].unique()
+            for value in col:
+                if value >= 1985:
+                    index = df.Year.eq(value).idxmax()
+                    rating = df.at[index, col_name]
+                    name = df.at[index, "Name"]
+                    year = df.at[index, "Year"]
+                    col_dict[value] = rating
+                    best_selling[year] = name
+            for i in best_selling.items():
+                print(i)
+
+            plt.plot(list(col_dict.keys()), list(col_dict.values()))
+            plt.xlabel("Year")
+            plt.ylim(3.0, 10.0)
+            plt.ylabel(col_name)
+            plt.title("Ratings of the best selling game of each year")
+            plt.show()
+
 def main():
     games_file = sys.argv[1]
 
     a = Analysis(games_file)
     for i, column in enumerate(Column):
-        print(column.value)
         a.create_dataframe(column.value)
         a.plot_dataframe(column.value, i)
     a.create_and_plot_ratings()
+    a.best_selling()
 
 
 if __name__ == "__main__":
