@@ -36,6 +36,8 @@ class Analysis(object):
                     if value in WANTED_PLATFORMS:
                         col_dict[value] = sum
                 else:
+                    if value == "Sony Computer Entertainment":
+                        value = "Sony"
                     if sum > 200:
                         col_dict[value] = sum
             else:
@@ -57,6 +59,7 @@ class Analysis(object):
             plt.bar(keys, values)
         plt.xlabel(col_name)
         plt.ylabel("Total Game Sales")
+        plt.title(col_name + " vs Total Game Sales")
         plt.show()
 
     def create_and_plot_ratings(self):
@@ -65,7 +68,7 @@ class Analysis(object):
             df = pd.DataFrame(self.games, columns=[col_name, "Year"])
             col = df["Year"].unique()
             for value in col:
-                if 2012 <= value < 2020:
+                if 2012 <= value <= 2018:
                     sum = df.loc[df["Year"] == value, col_name].sum()
                     count = df.loc[df["Year"] == value, col_name].count()
                     average = sum / count
@@ -81,6 +84,7 @@ class Analysis(object):
             plt.ylim(6.0, 9.0)
             plt.xlabel("Year")
             plt.ylabel("Average " + col_name)
+            plt.title("Average " + col_name + " of games in a given year")
             plt.show()
 
     def best_selling(self):
@@ -97,8 +101,6 @@ class Analysis(object):
                     year = df.at[index, "Year"]
                     col_dict[value] = rating
                     best_selling[year] = name
-            for i in best_selling.items():
-                print(i)
 
             plt.plot(list(col_dict.keys()), list(col_dict.values()))
             plt.xlabel("Year")
