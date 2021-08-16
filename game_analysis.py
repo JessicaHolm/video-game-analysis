@@ -8,12 +8,14 @@ import matplotlib.pyplot as plt
 WANTED_PLATFORMS = ["PC", "NES", "SNES", "N64", "GC", "Wii", "WiiU", "NS", "PS", "PS2", "PS3", "PS4", "XB", "X360", "XOne"]
 PLATFORM_COLORS = ["blue", "orange", "green", "blue", "red", "blue", "blue", "green", "green", "red", "red", "red", "red", "red", "red"]
 
+
 class Column(Enum):
     YEAR = "Year"
     CRITIC = "Critic_Score"
     USER = "User_Score"
     PUBLISHER = "Publisher"
     PLATFORM = "Platform"
+
 
 class Analysis(object):
 
@@ -22,14 +24,16 @@ class Analysis(object):
         self.games = pd.read_csv(game_file)
         self.simple_dicts = []
         self.rating_dicts = []
+        self.best_selling_dicts = []
 
     def create_dataframe(self, col_name):
         col_dict = {}
         df = pd.DataFrame(self.games, columns=[col_name, "Total_Shipped"])
         col = df[col_name].unique()
+        sorted_col = sorted(col, key=lambda e: e, reverse=True)
         if col_name == "Critic_Score" or col_name == "User_Score":
-            col = np.delete(col, np.where(np.isnan(col)))
-        for value in col:
+            sorted_col = np.delete(sorted_col, np.where(np.isnan(sorted_col)))
+        for value in sorted_col:
             sum = df.loc[df[col_name] == value, "Total_Shipped"].sum()
             if col_name == "Publisher" or col_name == "Platform":
                 if col_name == "Platform":
@@ -48,7 +52,7 @@ class Analysis(object):
         l = sorted(self.simple_dicts[i].items(), key=lambda e: e[1], reverse=True)
         keys = []
         values = []
-        for (k,v) in l:
+        for (k, v) in l:
             keys.append(k)
             values.append(v)
         if col_name == "Platform":
@@ -67,20 +71,15 @@ class Analysis(object):
             col_dict = {}
             df = pd.DataFrame(self.games, columns=[col_name, "Year"])
             col = df["Year"].unique()
-            for value in col:
+            sorted_col = sorted(col, key=lambda e: e)
+            for value in sorted_col:
                 if 2012 <= value <= 2018:
                     sum = df.loc[df["Year"] == value, col_name].sum()
                     count = df.loc[df["Year"] == value, col_name].count()
                     average = sum / count
                     col_dict[value] = average
             self.rating_dicts.append(col_dict)
-            l = sorted(self.rating_dicts[i].items(), key=lambda e: e[0])
-            keys = []
-            values = []
-            for (k, v) in l:
-                keys.append(k)
-                values.append(v)
-            plt.plot(keys, values)
+            plt.plot(col_dict.keys(), col_dict.values())
             plt.ylim(6.0, 9.0)
             plt.xlabel("Year")
             plt.ylabel("Average " + col_name)
@@ -90,24 +89,22 @@ class Analysis(object):
     def best_selling(self):
         for col_name in ["Critic_Score", "User_Score"]:
             col_dict = {}
-            best_selling = {}
             df = pd.DataFrame(self.games, columns=["Name", "Year", "Total_Shipped", "Critic_Score", "User_Score"])
             col = df["Year"].unique()
-            for value in col:
+            sorted_col = sorted(col, key=lambda e: e, reverse=True)
+            for value in sorted_col:
                 if value >= 1985:
                     index = df.Year.eq(value).idxmax()
                     rating = df.at[index, col_name]
-                    name = df.at[index, "Name"]
-                    year = df.at[index, "Year"]
                     col_dict[value] = rating
-                    best_selling[year] = name
-
-            plt.plot(list(col_dict.keys()), list(col_dict.values()))
+            self.best_selling_dicts.append(col_dict)
+            plt.plot(col_dict.keys(), col_dict.values())
             plt.xlabel("Year")
             plt.ylim(3.0, 10.0)
             plt.ylabel(col_name)
             plt.title("Ratings of the best selling game of each year")
             plt.show()
+
 
 def main():
     games_file = sys.argv[1]
